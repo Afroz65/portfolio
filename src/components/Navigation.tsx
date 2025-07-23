@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
 import './Navigation.css';
 
 const Navigation: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   const navigationItems = [
     { label: 'Home', href: '#home' },
@@ -15,6 +16,15 @@ const Navigation: React.FC = () => {
     { label: 'Achievements', href: '#achievements' },
     { label: 'Contact', href: '#contact' }
   ];
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -33,8 +43,8 @@ const Navigation: React.FC = () => {
   };
 
   return (
-    <motion.nav 
-      className="navigation"
+    <motion.header 
+      className={`navigation ${isScrolled ? 'scrolled' : ''}`}
       initial={{ opacity: 0, y: -50 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
@@ -46,40 +56,42 @@ const Navigation: React.FC = () => {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
-          <span className="logo-text">JA</span>
+          <h2>JA</h2>
         </motion.div>
 
         {/* Desktop Navigation */}
-        <motion.ul 
-          className="nav-menu desktop-menu"
+        <motion.nav 
+          className={`nav ${isMenuOpen ? 'nav-open' : ''}`}
           initial={{ opacity: 0, x: 50 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, delay: 0.3 }}
         >
-          {navigationItems.map((item, index) => (
-            <motion.li 
-              key={item.label}
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.4 + (index * 0.1) }}
-            >
-              <a
-                href={item.href}
-                className="nav-link"
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleNavClick(item.href);
-                }}
+          <motion.ul className="nav-list desktop-menu">
+            {navigationItems.map((item, index) => (
+              <motion.li 
+                key={item.label}
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.4 + (index * 0.1) }}
               >
-                {item.label}
-              </a>
-            </motion.li>
-          ))}
-        </motion.ul>
+                <a
+                  href={item.href}
+                  className="nav-link"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleNavClick(item.href);
+                  }}
+                >
+                  {item.label}
+                </a>
+              </motion.li>
+            ))}
+          </motion.ul>
+        </motion.nav>
 
         {/* Mobile Menu Button */}
         <motion.button
-          className="mobile-menu-button"
+          className="menu-toggle"
           onClick={toggleMenu}
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -92,28 +104,20 @@ const Navigation: React.FC = () => {
         {/* Mobile Navigation */}
         <AnimatePresence>
           {isMenuOpen && (
-            <motion.div
-              className="mobile-menu-overlay"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+            <motion.nav
+              className="nav nav-open"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.3 }}
-              onClick={closeMenu}
             >
-              <motion.ul
-                className="nav-menu mobile-menu"
-                initial={{ opacity: 0, x: '100%' }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: '100%' }}
-                transition={{ duration: 0.3, ease: 'easeInOut' }}
-                onClick={(e) => e.stopPropagation()}
-              >
+              <motion.ul className="nav-list mobile-menu">
                 {navigationItems.map((item, index) => (
                   <motion.li
                     key={item.label}
-                    initial={{ opacity: 0, x: 50 }}
+                    initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 50 }}
+                    exit={{ opacity: 0, x: -20 }}
                     transition={{ duration: 0.2, delay: index * 0.05 }}
                   >
                     <a
@@ -129,11 +133,11 @@ const Navigation: React.FC = () => {
                   </motion.li>
                 ))}
               </motion.ul>
-            </motion.div>
+            </motion.nav>
           )}
         </AnimatePresence>
       </div>
-    </motion.nav>
+    </motion.header>
   );
 };
 
